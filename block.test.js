@@ -1,53 +1,43 @@
 const Block = require("./block");
 
-describe("Block", () => {
-  let data, lastBlock, block;
+describe("Proof-of-Work avec carré parfait", () => {
+  it("devrait miner un bloc avec un hash valide et un nonce carré parfait", () => {
+    const block = new Block(Date.now(), { amount: 50 }, "", 3);
+    block.mineBlock();
 
-  beforeEach(() => {
-    data = "Test data";
-    lastBlock = Block.genesis();
-    block = Block.mineBlock(lastBlock, data);
+    expect(block.hash.startsWith("0".repeat(block.difficulty))).toBe(true);
+    expect(Block.isPerfectSquare(block.nonce)).toBe(true);
+    expect(block.isValid()).toBe(true);
   });
 
-  it("sets the `data` to match the input", () => {
-    expect(block.data).toEqual(data);
+  it("devrait retourner false si le nonce n’est pas un carré parfait", () => {
+    const block = new Block(Date.now(), { amount: 100 }, "", 2);
+    block.nonce = 3; // 3 n’est pas un carré parfait
+    block.hash = block.calculateHash();
+    expect(block.isValid()).toBe(false);
   });
 
-  it("sets the `lastHash` to match the hash of the last block", () => {
-    expect(block.lastHash).toEqual(lastBlock.hash);
+  it("affiche correctement √nonce et validation dans toString()", () => {
+    const block = new Block(Date.now(), { msg: "Test" }, "", 2);
+    block.mineBlock();
+    const output = block.toString();
+
+    expect(output).toMatch(/√nonce/);
+    expect(output).toMatch(/✅/);
   });
 
-  it("generates a hash based on the correct inputs", () => {
-    expect(block.hash).toEqual(
-      Block.hash(
-        block.timestamp,
-        block.lastHash,
-        block.data,
-        block.nonce,
-        block.difficulty
-      )
-    );
-  });
+  it("validateProof retourne true uniquement si hash et nonce sont valides", () => {
+    const block = new Block(Date.now(), {}, "", 2);
+    let valid = block.validateProof(49); // 49 = 7² → bon nonce
 
-  it("sets a timestamp", () => {
-    expect(block.timestamp).not.toBeUndefined();
-  });
+    if (block.hash.startsWith("0".repeat(block.difficulty))) {
+      expect(valid).toBe(true);
+    } else {
+      expect(valid).toBe(false);
+    }
 
-  it("generates a hash that matches the difficulty", () => {
-    expect(block.hash.substring(0, block.difficulty)).toEqual(
-      "0".repeat(block.difficulty)
-    );
-  });
-
-  it("lowers the difficulty for slowly mined block", () => {
-    expect(Block.adjustDifficulty(block, block.timestamp + 10000)).toEqual(
-      block.difficulty - 1
-    );
-  });
-
-  it("raises the difficulty for quickly mined block", () => {
-    expect(Block.adjustDifficulty(block, block.timestamp + 1)).toEqual(
-      block.difficulty + 1
-    );
+    // Mauvais test volontaire : 50 n’est pas un carré
+    valid = block.validateProof(50);
+    expect(valid).toBe(false);
   });
 });

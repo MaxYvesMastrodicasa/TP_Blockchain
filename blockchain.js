@@ -11,6 +11,40 @@ class Blockchain {
     this.chain.push(block);
     return block;
   }
+
+  addBlockFromProof(proof) {
+    const { timestamp, lastHash, data, nonce, difficulty, givenHash } = proof;
+
+    // Vérifie la validité
+    const calculatedHash = Block.hash(
+      timestamp,
+      lastHash,
+      data,
+      nonce,
+      difficulty
+    );
+
+    if (
+      givenHash !== calculatedHash ||
+      !givenHash.startsWith("0".repeat(difficulty)) ||
+      !Number.isInteger(Math.sqrt(nonce))
+    ) {
+      throw new Error("⛔ Preuve invalide. Bloc refusé.");
+    }
+
+    const block = new Block(
+      timestamp,
+      data,
+      lastHash,
+      difficulty,
+      nonce,
+      givenHash
+    );
+
+    this.chain.push(block);
+    return block;
+  }
+
   static isValidChain(chain) {
     if (JSON.stringify(chain[0]) !== JSON.stringify(Block.genesis())) {
       return false;
