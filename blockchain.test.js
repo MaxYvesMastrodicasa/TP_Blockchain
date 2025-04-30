@@ -32,7 +32,7 @@ describe("Blockchain", () => {
 
   it("invalidates a corrupt chain", () => {
     blockchain2.addBlock("foo");
-    blockchain2.chain[1].data = "Not foo";
+    blockchain2.chain[1].data = "tampered data"; // modification malveillante
     expect(Blockchain.isValidChain(blockchain2.chain)).toBe(false);
   });
 
@@ -43,7 +43,7 @@ describe("Blockchain", () => {
     expect(blockchain.chain).toEqual(blockchain2.chain);
   });
 
-  it("does not replace with a shorter or equal chain", () => {
+  it("does not replace the chain with one of less than or equal length", () => {
     blockchain.addBlock("foo");
     blockchain.replaceChain(blockchain2.chain);
 
