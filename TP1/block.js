@@ -6,7 +6,7 @@ class Block {
     timestamp,
     data,
     previousHash = "",
-    difficulty = 3,
+    difficulty = 5,
     nonce = 0,
     hash = ""
   ) {
